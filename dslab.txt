@@ -1,0 +1,277 @@
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+
+data = pd.read_csv('heightweight.csv')
+
+X = data[['Height']]
+y = data['Weight']
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+m = model.coef_[0]
+c = model.intercept_
+print(f"Linear equation: y = {m:.2f}x + {c:.2f}")
+
+y_train_pred = model.predict(X_train)
+y_test_pred = model.predict(X_test)
+
+mse_train = mean_squared_error(y_train, y_train_pred)
+mse_test = mean_squared_error(y_test, y_test_pred)
+print(f"Train Mean Squared Error: {mse_train:.2f}")
+print(f"Test Mean Squared Error: {mse_test:.2f}")
+
+height_input = float(input("Enter height in cm to predict weight: "))
+new_height_df = pd.DataFrame([[height_input]], columns=["Height"])
+predicted_weight = model.predict(new_height_df)
+print(f"Predicted weight for height {height_input} cm is {predicted_weight[0]:.2f} kg")
+
+plt.scatter(X_train, y_train, color='blue', label='Training data')
+plt.scatter(X_test, y_test, color='green', label='Test data')
+plt.plot(X, model.predict(X), color='red', label='Regression line')
+plt.xlabel('Height (cm)')
+plt.ylabel('Weight (kg)')
+plt.title('Linear Regression: Height vs Weight')
+plt.legend()
+plt.show()
+
+------------------------------------------------
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
+
+
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=10)
+
+knn = KNeighborsClassifier(n_neighbors=3)
+knn.fit(X_train, y_train)
+
+y_pred = knn.predict(X_test)
+
+print("Accuracy Score:", accuracy_score(y_pred, y_test))
+print("Confusion Matrix:\n", confusion_matrix(y_pred, y_test))
+print("Classification Report:\n", classification_report(y_pred, y_test,target_names = iris.target_names))
+
+correct = []
+wrong = []
+
+for i in range(len(y_test)):
+    true_label = y_test[i]
+    predicted_label = y_pred[i]
+    if true_label == predicted_label:
+        correct.append((X_test[i], target_names[true_label]))
+    else:
+        wrong.append((X_test[i], target_names[true_label], target_names[predicted_label]))
+
+print("Correct Predictions:")
+for features, label in correct:
+    print(f"Features: {features} => Predicted Correctly as: {label}")
+
+print("\nWrong Predictions:")
+for features, true_label, predicted_label in wrong:
+    print(f"Features: {features} => Actual: {true_label}, Predicted: {predicted_label}")
+
+---------------------------------------------------------
+
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
+
+
+cancer = load_breast_cancer()
+X = cancer.data
+y = cancer.target
+
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.33, random_state=42)
+
+
+dt = DecisionTreeClassifier(random_state=42)
+dt.fit(X_train, y_train)
+
+
+y_pred = dt.predict(X_test)
+
+
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+print("Accuracy Score:", round(accuracy_score(y_test, y_pred), 2))
+print("Classification Report:\n", classification_report(y_test, y_pred, target_names=cancer.target_names))
+
+
+plt.figure(figsize=(20, 10))
+plot_tree(dt, 
+          feature_names=cancer.feature_names, 
+          class_names=cancer.target_names, 
+          filled=True,
+          fontsize=10)
+plt.title("Decision Tree for Breast Cancer Dataset")
+plt.show()
+
+---------------------------------------------------------------------------
+
+import pandas as pd
+from sklearn.datasets import load_iris
+
+iris = load_iris()
+df = pd.DataFrame(data=iris.data, columns=iris.feature_names)
+
+correlation_matrix = df.corr()
+covariance_matrix = df.cov()
+
+correlation_flat = correlation_matrix.stack().reset_index()
+correlation_flat.columns = ['Feature_1', 'Feature_2', 'Correlation']
+
+covariance_flat = covariance_matrix.stack().reset_index()
+covariance_flat.columns = ['Feature_1', 'Feature_2', 'Covariance']
+
+combined_df = pd.merge(correlation_flat, covariance_flat, on=['Feature_1', 'Feature_2'])
+combined_df.to_csv('iris_correlation_covariance.csv', index=False)
+
+print("Combined correlation and covariance CSV has been saved as 'iris_correlation_covariance.csv'.")
+print("CORRELATION MATRIX")
+print(correlation_matrix)
+print("\nCOVARIANCE MATRIX")
+print(covariance_matrix)
+
+-------------------------------------------------------------------------
+
+import pandas as pd
+import numpy as np
+from sklearn.datasets import load_iris
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+
+iris = load_iris()
+df = pd.DataFrame(data=iris.data, columns=iris.feature_names)
+
+scaler = StandardScaler()
+scaled_data = scaler.fit_transform(df)
+
+cov_matrix = np.cov(scaled_data.T)
+print("Covariance Matrix:\n", cov_matrix)
+
+eig_values, eig_vectors = np.linalg.eig(cov_matrix)
+print("\nEigenvalues:\n", eig_values)
+
+pca_full = PCA()
+pca_full.fit(scaled_data)
+plt.figure(figsize=(6,4))
+plt.plot(np.cumsum(pca_full.explained_variance_ratio_), marker='o')
+plt.xlabel("Number of Components")
+plt.ylabel("Cumulative Explained Variance")
+plt.title("Explained Variance vs Components")
+plt.grid(True)
+plt.show()
+
+pca = PCA(n_components=3)
+pca_data = pca.fit_transform(scaled_data)
+
+print("\nExplained Variance Ratio (PCA with 3 components):\n", pca.explained_variance_ratio_)
+print("\nOriginal Shape:", scaled_data.shape)
+print("Reduced Shape:", pca_data.shape)
+
+-------------------------------------------------------------------
+
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, precision_score, recall_score
+
+iris = load_iris()
+X = iris.data  
+y = iris.target
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+nb = GaussianNB()
+nb.fit(X_train, y_train)
+
+y_pred = nb.predict(X_test)
+
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Precision:", precision_score(y_test, y_pred, average='macro'))
+print("Recall:", recall_score(y_test, y_pred, average='macro'))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+-------------------------------------------------------------------------
+
+import pandas as pd
+import numpy as np
+from sklearn.datasets import load_iris
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+
+iris = load_iris()
+X = pd.DataFrame(iris.data, columns=iris.feature_names)
+y = iris.target
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+model = LogisticRegression(max_iter=200)
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+print("Accuracy on Test Data:", accuracy_score(y_test, y_pred))
+
+feature_importance = pd.DataFrame(
+    model.coef_.T,
+    index=iris.feature_names,
+    columns=iris.target_names
+)
+print("\nFeature Importance (coefficients):\n", feature_importance)
+
+-------------------------------------------------------------------------
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
+
+data = pd.read_csv('heart.csv')
+
+target_column = 'target'
+
+X = data.drop(target_column, axis=1)
+y = data[target_column]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+svm_clf = SVC(kernel='rbf', C=1.0, gamma='scale', random_state=42)
+svm_clf.fit(X_train_scaled, y_train)
+
+y_pred = svm_clf.predict(X_test_scaled)
+
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
+
+--------------------------------------------------------------------------
+
+
