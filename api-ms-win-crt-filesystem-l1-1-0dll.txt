@@ -1,0 +1,486 @@
+CSV READ
+ 
+import csv
+import pandas as pd 
+with open('classdata.csv', mode='r' , newline='') as file:
+    reader = csv.DictReader(file)
+    data = list (reader)
+
+data_sorted = sorted(data, key=lambda x: int (x[ 'Age']))
+
+with open( 'classdata_sorted.csv', mode='w', newline='') as file:
+    writer = csv.DictWriter(file, fieldnames=[ 'Name', 'Age', 'Department', 'Grade'])
+    writer.writeheader()
+    writer.writerows (data_sorted)
+
+print("CSV file sorted by age and saved as 'classdata_sorted.csv'")
+df = pd.read_csv('classdata_sorted.csv')
+print(df)
+------------------------------------------------------------------------------------------------
+MATRIX MULTIPICATION
+
+import numpy as np
+
+def get_matrix_from_user (name):
+    rows = int(input(f"Enter the number of rows for matrix {name}: "))
+    cols = int(input(f"Enter the number of columns for matrix {name}: "))
+    print(f"Enter the elements of matrix {name} row-wise (space-separated):")
+    matrix_elements = [] 
+    for i in range(rows):
+        row = list(map(float, input(f"Row {i+1}:").split()))
+        while len(row) != cols:
+            print(f"Please enter exactly {cols} elements.")
+            row = list(map(float, input(f"Row {i+1}: ").split()))
+        matrix_elements. append (row)
+    return np. array (matrix_elements)    
+
+def matrix_addition(A, B):
+    return A + B
+def matrix_subtraction(A, B):
+    return A - B
+def matrix_multiplication(A, B):
+    return np.dot(A, B)
+def matrix_transpose(A):
+    return A.T
+def matrix_inverse(A):
+    return np.linalg.inv(A)
+
+print("Input matrix A:")
+A = get_matrix_from_user("A")
+print("\nInput matrix B:")
+B = get_matrix_from_user("B")
+
+print("\nMatrix A:\n", A)
+print("\nMatrix B:\n", B)
+
+print("\nA + B: \n", matrix_addition(A, B))
+print("\nA - B: \n", matrix_subtraction(A, B))
+print("\nA x B: \n", matrix_multiplication(A, B))
+print("\nTranspose of A:\n", matrix_transpose(A))
+print("\nInverse of A:\n", matrix_inverse(A))
+------------------------------------------------------------------------------------------------
+LINERAR REGRESSION
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+
+data = pd.read_csv('heightweight.csv')
+
+X = data[['Height']]
+y = data['Weight']
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+m = model.coef_[0]
+c = model.intercept_
+print(f"Linear equation: y = {m:.2f}x + {c:.2f}")
+
+y_train_pred = model.predict(X_train)
+y_test_pred = model.predict(X_test)
+
+mse_train = mean_squared_error(y_train, y_train_pred)
+mse_test = mean_squared_error(y_test, y_test_pred)
+print(f"Train Mean Squared Error: {mse_train:.2f}")
+print(f"Test Mean Squared Error: {mse_test:.2f}")
+
+height_input = float(input("Enter height in cm to predict weight: "))
+new_height_df = pd.DataFrame([[height_input]], columns=["Height"])
+predicted_weight = model.predict(new_height_df)
+print(f"Predicted weight for height {height_input} cm is {predicted_weight[0]:.2f} kg")
+
+plt.scatter(X_train, y_train, color='blue', label='Training data')
+plt.scatter(X_test, y_test, color='green', label='Test data')
+plt.plot(X, model.predict(X), color='red', label='Regression line')
+plt.xlabel('Height (cm)')
+plt.ylabel('Weight (kg)')
+plt.title('Linear Regression: Height vs Weight')
+plt.legend()
+plt.show()
+
+------------------------------------------------
+KNN
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
+
+
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=10)
+
+knn = KNeighborsClassifier(n_neighbors=3)
+knn.fit(X_train, y_train)
+
+y_pred = knn.predict(X_test)
+
+print("Accuracy Score:", accuracy_score(y_pred, y_test))
+print("Confusion Matrix:\n", confusion_matrix(y_pred, y_test))
+print("Classification Report:\n", classification_report(y_pred, y_test,target_names = iris.target_names))
+
+correct = []
+wrong = []
+
+for i in range(len(y_test)):
+    true_label = y_test[i]
+    predicted_label = y_pred[i]
+    if true_label == predicted_label:
+        correct.append((X_test[i], target_names[true_label]))
+    else:
+        wrong.append((X_test[i], target_names[true_label], target_names[predicted_label]))
+
+print("Correct Predictions:")
+for features, label in correct:
+    print(f"Features: {features} => Predicted Correctly as: {label}")
+
+print("\nWrong Predictions:")
+for features, true_label, predicted_label in wrong:
+    print(f"Features: {features} => Actual: {true_label}, Predicted: {predicted_label}")
+
+plt.scatter(y_test,y_pred,color='blue')
+plt.show()
+
+---------------------------------------------------------
+DECISION TREE
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
+
+
+cancer = load_breast_cancer()
+X = cancer.data
+y = cancer.target
+
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.33, random_state=42)
+
+
+dt = DecisionTreeClassifier(random_state=42)
+dt.fit(X_train, y_train)
+
+
+y_pred = dt.predict(X_test)
+
+
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+print("Accuracy Score:", round(accuracy_score(y_test, y_pred), 2))
+print("Classification Report:\n", classification_report(y_test, y_pred, target_names=cancer.target_names))
+
+
+plt.figure(figsize=(20, 10))
+plot_tree(dt, 
+          feature_names=cancer.feature_names, 
+          class_names=cancer.target_names, 
+          filled=True,
+          fontsize=10)
+plt.title("Decision Tree for Breast Cancer Dataset")
+plt.show()
+
+---------------------------------------------------------------------------
+COVARIANCE AND CORRELATION
+import pandas as pd
+from sklearn.datasets import load_iris
+
+iris = load_iris()
+df = pd.DataFrame(data=iris.data, columns=iris.feature_names)
+
+correlation_matrix = df.corr()
+covariance_matrix = df.cov()
+
+correlation_flat = correlation_matrix.stack().reset_index()
+correlation_flat.columns = ['Feature_1', 'Feature_2', 'Correlation']
+
+covariance_flat = covariance_matrix.stack().reset_index()
+covariance_flat.columns = ['Feature_1', 'Feature_2', 'Covariance']
+
+combined_df = pd.merge(correlation_flat, covariance_flat, on=['Feature_1', 'Feature_2'])
+combined_df.to_csv('iris_correlation_covariance.csv', index=False)
+
+print("Combined correlation and covariance CSV has been saved as 'iris_correlation_covariance.csv'.")
+print("CORRELATION MATRIX")
+print(correlation_matrix)
+print("\nCOVARIANCE MATRIX")
+print(covariance_matrix)
+
+-------------------------------------------------------------------------
+PCA
+import pandas as pd
+from sklearn.datasets import load_iris
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+iris = load_iris()
+df = pd.DataFrame(iris.data, columns=iris.feature_names)
+
+scaler = StandardScaler()
+scaled_data = scaler.fit_transform(df)
+
+cov_matrix = np.cov(scaled_data.T)
+print("\nCovariance Matrix:")
+print(cov_matrix)
+
+pca = PCA(n_components=3)
+pca_data = pca.fit_transform(scaled_data)
+
+eig_values, eig_vectors = np.linalg.eig(cov_matrix)
+print("\nEigenvalues:\n", eig_values)
+
+plt.figure(figsize=(5,4))
+sns.heatmap(cov_matrix, annot=True, cmap="coolwarm", fmt=".2f")
+plt.title("Covariance Matrix Heatmap")
+plt.show()
+
+cov_pca = np.cov(pca_data.T)
+print("\nCovariance Matrix After PCA:")
+print(cov_pca)
+
+plt.figure(figsize=(5,4))
+sns.heatmap(cov_pca, annot=True, cmap="coolwarm", fmt=".2f")
+plt.title("Covariance Matrix Heatmap After PCA")
+plt.show()
+
+pca_full = PCA()
+pca_full.fit(scaled_data)
+plt.figure(figsize=(6,4))
+plt.plot(np.cumsum(pca_full.explained_variance_ratio_), marker='o')
+plt.xlabel("Number of Components")
+plt.ylabel("Cumulative Explained Variance")
+plt.title("Explained Variance vs Components")
+plt.grid(True)
+plt.show()
+
+print("\nExplained Variance Ratio (PCA with 3 components):\n", pca.explained_variance_ratio_)
+
+print("\nOriginal Shape:", scaled_data.shape)
+print("Reduced Shape:", pca_data.shape)
+
+
+-------------------------------------------------------------------
+NAIVE BAYES
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, precision_score, recall_score
+
+iris = load_iris()
+X = iris.data  
+y = iris.target
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+nb = GaussianNB()
+nb.fit(X_train, y_train)
+
+y_pred = nb.predict(X_test)
+
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Precision:", precision_score(y_test, y_pred, average='macro'))
+print("Recall:", recall_score(y_test, y_pred, average='macro'))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+
+-------------------------------------------------------------------------
+LOGISTIC REGRESSION
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score,classification_report
+
+iris = load_iris()
+X = pd.DataFrame(iris.data, columns=iris.feature_names)
+y = iris.target
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+model = LogisticRegression(max_iter=200)
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+print("Accuracy on Test Data: {:.2f}%".format(accuracy_score(y_test, y_pred) * 100))
+
+feature_importance = pd.DataFrame(
+    model.coef_.T,
+    index=iris.feature_names,
+    columns=iris.target_names
+)
+print("\nFeature Importance (coefficients):\n", feature_importance)
+
+plt.figure(figsize=(8,6))
+plt.scatter(X_test['petal length (cm)'], X_test['petal width (cm)'],
+            c=y_pred, cmap='Set1', edgecolors='k')
+plt.xlabel('Petal length (cm)')
+plt.ylabel('Petal width (cm)')
+plt.title('Logistic Regression Classification (Iris Dataset)')
+plt.show()
+
+
+-------------------------------------------------------------------------
+SUPPORT VECTOR MACHINE(HEART CSV)
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
+import matplotlib.pyplot as plt
+
+data = pd.read_csv('heart.csv')
+
+target_column = 'target'
+
+X = data.drop(target_column, axis=1)
+y = data[target_column]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+svm_clf = SVC(kernel='rbf', C=1.0, gamma='scale', random_state=42)
+svm_clf.fit(X_train_scaled, y_train)
+
+y_pred = svm_clf.predict(X_test_scaled)
+
+print("Accuracy:", accuracy_score(y_test, y_pred)*100,"%")
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
+
+plt.figure(figsize=(6, 5))
+plt.scatter(X_test.iloc[:, 0], X_test.iloc[:, 1], c=y_pred, cmap='coolwarm', edgecolors='k')
+plt.title("SVM Classification Result (Heart Dataset)")
+plt.xlabel(features.columns[0])
+plt.ylabel(features.columns[1])
+plt.show()
+
+
+--------------------------------------------------------------------------
+SVM BREAST CANCER
+
+import numpy as np
+import pandas as pd
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Step 1: Load dataset
+data = datasets.load_breast_cancer()
+X = data.data
+y = data.target
+
+# Step 2: Select two features for visualization
+X_vis = X[:, [0, 1]]  # mean radius, mean texture
+
+# Step 3: Split the data
+X_train, X_test, y_train, y_test = train_test_split(X_vis, y, test_size=0.2, random_state=42)
+
+# Step 4: Scale features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Step 5: Train SVM
+model = SVC(kernel='linear', random_state=42)
+model.fit(X_train, y_train)
+
+# Step 6: Predictions
+y_pred = model.predict(X_test)
+
+# Step 7: Evaluation
+accuracy = accuracy_score(y_test, y_pred) * 100
+print(f"Accuracy: {accuracy:.2f}%")
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+# Step 8: Confusion Matrix Heatmap
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=data.target_names, yticklabels=data.target_names)
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix')
+plt.show()
+
+# Step 9: Visualize Decision Boundary
+plt.figure(figsize=(8,6))
+# Create a mesh grid
+x_min, x_max = X_train[:, 0].min() - 1, X_train[:, 0].max() + 1
+y_min, y_max = X_train[:, 1].min() - 1, X_train[:, 1].max() + 1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.02),
+                     np.arange(y_min, y_max, 0.02))
+
+# Predict for each point in the mesh grid
+Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
+Z = Z.reshape(xx.shape)
+
+# Plot decision boundary
+plt.contourf(xx, yy, Z, alpha=0.3, cmap=plt.cm.coolwarm)
+plt.scatter(X_train[:, 0], X_train[:, 1], c=y_train, s=30, cmap=plt.cm.coolwarm, edgecolors='k')
+plt.xlabel('Mean Radius')
+plt.ylabel('Mean Texture')
+plt.title('SVM Decision Boundary (Linear Kernel)')
+plt.show()
+
+
+----------------------------------------------------------------------------
+
+HILL CLIBING 
+import matplotlib.pyplot as plt
+import networkx as nx
+from math import inf
+def hill_climb(graph, start, goal):
+    path = [start]
+    total_cost = 0
+    while path[-1] != goal:
+        neighbors = graph.get(path[-1], {})
+        if not neighbors:
+            print("No further neighbors from node:", path[-1])
+            return path, float(inf)
+        next_node = min(neighbors, key=neighbors.get)
+        total_cost += neighbors[next_node]
+        path.append(next_node)
+        if len(path) > len(graph):
+            print("Cycle detected, stopping search.")
+            break
+    print("The total path cost is:", total_cost)
+    return path, total_cost
+graph = {
+    'A': {'B': 1, 'C': 4},
+    'B': {'C': 2, 'D': 5},
+    'C': {'D': 1},
+    'D': {}
+}
+path, cost = hill_climb(graph, 'A', 'D')
+G = nx.DiGraph((u, v, {'weight': w}) for u in graph for v, w in graph[u].items())
+pos = nx.spring_layout(G)
+nx.draw(G, pos, with_labels=True, node_color='skyblue', node_size=600)
+nx.draw_networkx_edge_labels(G, pos, edge_labels=nx.get_edge_attributes(G, 'weight'))
+nx.draw_networkx_edges(G, pos, edgelist=list(zip(path, path[1:])), edge_color='r', width=2)
+plt.title(f"Hill Climbing Path: {' → '.join(path)} (Cost: {cost})")
+plt.show()
+
+----------------------------------------------------------------------------------
