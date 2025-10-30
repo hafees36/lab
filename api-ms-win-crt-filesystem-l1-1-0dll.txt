@@ -445,9 +445,34 @@ plt.ylabel('Mean Texture')
 plt.title('SVM Decision Boundary (Linear Kernel)')
 plt.show()
 
-
 ----------------------------------------------------------------------------
+SVM SIMPLE
+from sklearn.datasets import load_iris
+from sklearn.svm import SVC
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score,confusion_matrix,ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
 
+iris=load_iris()
+
+x=iris.data
+y=iris.target
+
+x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=0.3,random_state=42)
+
+svm=SVC(kernel='rbf',C=0.1).fit(x_train,y_train)
+
+y_pred=svm.predict(x_test)
+
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+print("Accuracy Score:", accuracy_score(y_test, y_pred)*100)
+print("Classification Report:\n", classification_report(y_test, y_pred, target_names=iris.target_names))
+
+disp=ConfusionMatrixDisplay(cm,display_labels=iris.target_names)
+disp.plot()
+plt.show()
+
+-----------------------------------------------------------------------------
 HILL CLIBING 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -484,3 +509,4 @@ plt.title(f"Hill Climbing Path: {' → '.join(path)} (Cost: {cost})")
 plt.show()
 
 ----------------------------------------------------------------------------------
+
